@@ -14,7 +14,7 @@ public class OrbitCam : MonoBehaviour
 	Vector3 baseInitialPosition;
 	Vector3 camInitialPosition;
 
-	bool mouseIsNearSliders;
+//	bool mouseIsNearSliders;
 	bool leftMouseDown;
 	bool rightMouseDown;
 
@@ -30,11 +30,11 @@ public class OrbitCam : MonoBehaviour
 		Vector2 mouse = new Vector2 ( Input.GetAxis ( "Mouse X" ), Input.GetAxis ( "Mouse Y" ) );
 		Vector2 mousePos = Input.mousePosition;
 		// check if the mouse is in the top right corner near the sliders
-		mouseIsNearSliders = mousePos.x > Screen.width - 300 * ( 1f * Screen.width / 1920 );
-		mouseIsNearSliders &= mousePos.y > Screen.height - 250 * ( 1f * Screen.height / 1080 );
+//		mouseIsNearSliders = mousePos.x > Screen.width - 300 * ( 1f * Screen.width / 1920 );
+//		mouseIsNearSliders &= mousePos.y > Screen.height - 250 * ( 1f * Screen.height / 1080 );
 
 		// update left mouse down status. disallow down if we're near the sliders
-		if ( Input.GetMouseButtonDown ( 0 ) && !mouseIsNearSliders )
+		if ( Input.GetMouseButtonDown ( 0 ) && !GimbalControl.IsMouseOnUI )
 		{
 			leftMouseDown = true;
 		}
@@ -42,7 +42,7 @@ public class OrbitCam : MonoBehaviour
 			leftMouseDown = false;
 
 		// update right mouse down status. disallow down if we're near the sliders
-		if ( Input.GetMouseButtonDown ( 1 ) && !mouseIsNearSliders )
+		if ( Input.GetMouseButtonDown ( 1 ) && !GimbalControl.IsMouseOnUI )
 		{
 			rightMouseDown = true;
 		}
