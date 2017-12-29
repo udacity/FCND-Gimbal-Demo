@@ -31,7 +31,8 @@ public class GimbalControl : MonoBehaviour
 	AxisOrder lastAxisOrder;
 //	[HideInInspector]
 	public RotationSet[] rotationSets;
-	public bool captureRotations;
+	// make this public to re-capture rotations
+	private bool captureRotations;
 
 	Transform xRing;
 	Transform yRing;
