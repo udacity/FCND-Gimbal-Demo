@@ -44,8 +44,8 @@ public class GimbalControl : MonoBehaviour
 	{
 		#if UNITY_EDITOR
 		if ( UnityEditor.EditorApplication.isPlaying )
-			SetAxisOrder ( AxisOrder.XYZ );
 		#endif
+		SetAxisOrder ( AxisOrder.XYZ );
 	}
 
 	void Update ()
@@ -115,8 +115,32 @@ public class GimbalControl : MonoBehaviour
 	void UpdateRotation (int ring)
 	{
 		RotationSet thisSet = rotationSets [ (int) axisOrder ];
-		Vector3 euler = rings [ ring ].localEulerAngles;
+		Transform t = ring == 0 ? xRing :
+			ring == 1 ? yRing :
+			zRing;
+		int idx = rings.FindIndex ( x => x == t );
+//		Vector3 euler = rings [ idx ].localEulerAngles;
+		switch ( idx )
+		{
+		case 0:
+			t.localRotation = thisSet.rotations [ 0 ];
+			t.Rotate ( Vector3.right * sliders [ ring ].value * 360f );
+//			euler.x = thisSet.rotations [ 0 ].eulerAngles.x + sliders [ ring ].value * 360f;
+			break;
 
+		case 1:
+			t.localRotation = thisSet.rotations [ 1 ];
+			t.Rotate ( Vector3.up * sliders [ ring ].value * 360f );
+//			euler.y = thisSet.rotations [ 1 ].eulerAngles.y + sliders [ ring ].value * 360f;
+			break;
+
+		case 2:
+			t.localRotation = thisSet.rotations [ 2 ];
+			t.Rotate ( Vector3.forward * sliders [ ring ].value * 360f );
+//			euler.z = thisSet.rotations [ 2 ].eulerAngles.z + sliders [ ring ].value * 360f;
+			break;
+		}
+//		rings [ idx ].localEulerAngles = euler;
 	}
 
 	public void SetAxisOrder (int order)
@@ -177,7 +201,8 @@ public class GimbalControl : MonoBehaviour
 
 	public void OnSliderValueChanged (int sliderID)
 	{
-		UpdateRotations ();
+		UpdateRotation ( sliderID );
+//		UpdateRotations ();
 	}
 
 	public void SetMouseInUI (bool isIn)

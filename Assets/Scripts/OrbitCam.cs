@@ -74,26 +74,30 @@ public class OrbitCam : MonoBehaviour
 
 	void OnGUI ()
 	{
+		float aspect = 1f * Screen.height / 1080;
+
 		GUIStyle label = GUI.skin.label;
-		label.fontSize = 24 * Screen.height / 1080;
-		label.alignment = TextAnchor.UpperRight;
+		label.fontSize = (int) ( 20f * aspect );
+		label.alignment = TextAnchor.MiddleRight;
+		float height = label.CalcHeight ( new GUIContent ( "RLMBMOC" ), Screen.width );
+//		float height = 25f * aspect;
 
-		Rect r = new Rect ( 0, Screen.height - 100, Screen.width - 15, 100 );
+		Rect r = new Rect ( 0, Screen.height - height - 5, Screen.width - 15, height );
 		GUI.color = Color.black;
-		GUI.Label ( new Rect ( r.x + 1, r.y + 1, r.width, r.height ), "LMB - Orient Camera" );
+		GUI.Label ( new Rect ( r.x + 1, r.y + 1, r.width, r.height ), "R - Reset Camera" );
 		GUI.color = Color.white;
-		GUI.Label ( r, "LMB - Orient Camera" );
+		GUI.Label ( r, "R - Reset Camera" );
 
-		r.y += 30;
+		r.y -= height;
 		GUI.color = Color.black;
 		GUI.Label ( new Rect ( r.x + 1, r.y + 1, r.width, r.height ), "RMB - Move Camera" );
 		GUI.color = Color.white;
 		GUI.Label ( r, "RMB - Move Camera" );
 
-		r.y += 30;
+		r.y -= height;
 		GUI.color = Color.black;
-		GUI.Label ( new Rect ( r.x + 1, r.y + 1, r.width, r.height ), "R - Reset Camera" );
+		GUI.Label ( new Rect ( r.x + 1, r.y + 1, r.width, r.height ), "LMB - Orient Camera" );
 		GUI.color = Color.white;
-		GUI.Label ( r, "R - Reset Camera" );
+		GUI.Label ( r, "LMB - Orient Camera" );
 	}
 }
