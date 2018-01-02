@@ -22,13 +22,10 @@ public class UIRotationOption : MonoBehaviour
 			{
 			case 0:
 				return Vector3.right;
-				break;
 			case 1:
 				return Vector3.forward;
-				break;
 			case 2:
 				return Vector3.up;
-				break;
 			}
 			return Vector3.up;
 		}
