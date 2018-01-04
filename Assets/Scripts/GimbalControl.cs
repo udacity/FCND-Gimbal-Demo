@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using dd = TMPro.TMP_Dropdown;
 
 public enum AxisOrder { RPY, RYP, PRY, PYR, YRP, YPR };
 
@@ -14,6 +15,7 @@ public class AxisSet
 	public Quaternion[] rotations = new Quaternion[4];
 	[HideInInspector]
 	public Vector3 jetPosition;
+	[Tooltip ("References to roll-pitch-yaw rings")]
 	public Transform[] rings = new Transform[3];
 }
 
@@ -26,6 +28,7 @@ public class GimbalControl : MonoBehaviour
 	public Transform[] rings;
 	public Transform jet;
 	public Slider[] sliders;
+	public dd dropdown;
 
 	public AxisOrder axisOrder;
 	AxisOrder lastAxisOrder;
@@ -36,6 +39,10 @@ public class GimbalControl : MonoBehaviour
 	Transform pitchRing;
 	Transform rollRing;
 	Transform yawRing;
+
+	bool[] sliderMouse = new bool[3];
+	int sliderDown = -1;
+//	bool[] sliderDown = new bool[3];
 
 
 	void Awake ()
@@ -61,12 +68,9 @@ public class GimbalControl : MonoBehaviour
 			captureRotations = false;
 			int idx = (int) axisOrder;
 			AxisSet thisSet = axisSets [ idx ];
-			thisSet.rotations[0] = thisSet.rings[0].localRotation;
-			thisSet.rotations[1] = thisSet.rings[1].localRotation;
-			thisSet.rotations[2] = thisSet.rings[2].localRotation;
-//			thisSet.rotations [ 0 ] = rings [ 0 ].localRotation;
-//			thisSet.rotations [ 1 ] = rings [ 1 ].localRotation;
-//			thisSet.rotations [ 2 ] = rings [ 2 ].localRotation;
+			thisSet.rotations [ 0 ] = thisSet.rings [ 0 ].localRotation;
+			thisSet.rotations [ 1 ] = thisSet.rings [ 1 ].localRotation;
+			thisSet.rotations [ 2 ] = thisSet.rings [ 2 ].localRotation;
 			thisSet.rotations [ 3 ] = jet.localRotation;
 			thisSet.jetPosition = jet.localPosition;
 		}
@@ -79,9 +83,6 @@ public class GimbalControl : MonoBehaviour
 		thisSet.rings [ 0 ].localRotation = thisSet.rotations [ 0 ];
 		thisSet.rings [ 1 ].localRotation = thisSet.rotations [ 1 ];
 		thisSet.rings [ 2 ].localRotation = thisSet.rotations [ 2 ];
-//		rings [ 0 ].localRotation = thisSet.rotations [ 0 ];
-//		rings [ 1 ].localRotation = thisSet.rotations [ 1 ];
-//		rings [ 2 ].localRotation = thisSet.rotations [ 2 ];
 		jet.localRotation = thisSet.rotations [ 3 ];
 		jet.localPosition = thisSet.jetPosition;
 	}
@@ -107,49 +108,57 @@ public class GimbalControl : MonoBehaviour
 
 	public void SetAxisOrder (AxisOrder order)
 	{
-		switch ( order )
+		sliderDown = -1;
+		sliderMouse [ 0 ] = sliderMouse [ 1 ] = sliderMouse [ 2 ] = false;
+
+		AxisSet axes = axisSets [ (int) order ];
+		rollRing = axes.rings [ 0 ];
+		pitchRing = axes.rings [ 1 ];
+		yawRing = axes.rings [ 2 ];
+
+/*		switch ( order )
 		{
 		case AxisOrder.RPY:
-			rollRing = rings [ 0 ];
+			yawRing = rings [ 0 ];
 			pitchRing = rings [ 1 ];
-			yawRing = rings [ 2 ];
+			rollRing = rings [ 2 ];
 
 			break;
 
 		case AxisOrder.RYP:
+			pitchRing = rings [ 0 ];
+			yawRing = rings [ 1 ];
+			rollRing = rings [ 2 ];
+			break;
+
+		case AxisOrder.PRY:
+			yawRing = rings [ 0 ];
+			rollRing = rings [ 1 ];
+			pitchRing = rings [ 2 ];
+			break;
+
+		case AxisOrder.PYR:
 			rollRing = rings [ 0 ];
 			yawRing = rings [ 1 ];
 			pitchRing = rings [ 2 ];
 			break;
 
-		case AxisOrder.PRY:
+		case AxisOrder.YRP:
 			pitchRing = rings [ 0 ];
 			rollRing = rings [ 1 ];
 			yawRing = rings [ 2 ];
 			break;
 
-		case AxisOrder.PYR:
-			pitchRing = rings [ 0 ];
-			yawRing = rings [ 1 ];
-			rollRing = rings [ 2 ];
-			break;
-
-		case AxisOrder.YRP:
-			yawRing = rings [ 0 ];
-			rollRing = rings [ 1 ];
-			pitchRing = rings [ 2 ];
-			break;
-
 		case AxisOrder.YPR:
-			yawRing = rings [ 0 ];
+			rollRing = rings [ 0 ];
 			pitchRing = rings [ 1 ];
-			rollRing = rings [ 2 ];
+			yawRing = rings [ 2 ];
 			break;
-		}
+		}*/
 
-		pitchRing.GetComponent<Renderer> ().material = materials [ 0 ];
-		rollRing.GetComponent<Renderer> ().material = materials [ 1 ];
-		yawRing.GetComponent<Renderer> ().material = materials [ 2 ];
+		rollRing.GetComponent<ColorSetter> ().SetMaterial ( materials [ 0 ] );
+		pitchRing.GetComponent<ColorSetter> ().SetMaterial ( materials [ 1 ] );
+		yawRing.GetComponent<ColorSetter> ().SetMaterial ( materials [ 2 ] );
 
 		axisOrder = order;
 		ResetRotations ();
@@ -169,5 +178,49 @@ public class GimbalControl : MonoBehaviour
 	public void OnResetButton ()
 	{
 		SetAxisOrder ( axisOrder );
+	}
+
+	public void OnMouseEnterSlider (int slider)
+	{
+//		Debug.Log ( "0" );
+		if ( dropdown.IsExpanded )
+			return;
+		sliderMouse [ slider ] = true;
+		if ( sliderDown == -1 )
+		{
+			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
+		}
+	}
+
+	public void OnMouseExitSlider (int slider)
+	{
+//		Debug.Log ( "1" );
+		sliderMouse [ slider ] = false;
+		if ( sliderDown != slider )
+		{
+			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
+		}
+	}
+
+	public void OnMouseDownSlider (int slider)
+	{
+//		Debug.Log ( "2" );
+		sliderDown = slider;
+		Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+		ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
+	}
+
+	public void OnMouseUpSlider (int slider)
+	{
+//		Debug.Log ( "3" );
+		sliderDown = -1;
+		if ( sliderDown != slider )
+		if ( !sliderMouse [ slider ] )
+		{
+			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
+		}
 	}
 }
