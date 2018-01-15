@@ -30,12 +30,12 @@ public class GimbalControl : MonoBehaviour
 	public Slider[] sliders;
 	public Toggle[] ringToggles;
 	public dd dropdown;
-	public GameObject[] originAxes;
-	public Transform[] originAxisTips;
-	public GameObject[] localAxes;
+	public GameObject[] globalAxes;
+	public Transform[] globalAxisTips;
+	public GameObject[] bodyAxes;
 	public Transform[] localAxisTips;
-	public Toggle originToggle;
-	public Toggle localAxesToggle;
+	public Toggle globalToggle;
+	public Toggle bodyAxesToggle;
 
 	public AxisOrder axisOrder;
 	AxisOrder lastAxisOrder;
@@ -50,8 +50,8 @@ public class GimbalControl : MonoBehaviour
 
 	bool[] sliderMouse = new bool[3];
 	int sliderDown = -1;
-	bool originVisible;
-	bool localAxesVisible;
+	bool globalVisible;
+	bool bodyAxesVisible;
 
 
 	void Awake ()
@@ -61,8 +61,8 @@ public class GimbalControl : MonoBehaviour
 		#endif
 		SetAxisOrder ( AxisOrder.RPY );
 		cam = Camera.main;
-		OnOriginToggle ( originToggle.isOn );
-		OnLocalAxesToggle ( localAxesToggle.isOn );
+		OnGlobalToggle ( globalToggle.isOn );
+		OnBodyToggle ( bodyAxesToggle.isOn );
 	}
 
 	void Update ()
@@ -91,7 +91,7 @@ public class GimbalControl : MonoBehaviour
 
 	void OnGUI ()
 	{
-//		if ( !originVisible && !localAxesVisible )
+//		if ( !globalVisible && !bodyAxesVisible )
 //			return;
 		
 		GUIStyle label = GUI.skin.label;
@@ -101,49 +101,49 @@ public class GimbalControl : MonoBehaviour
 		label.fontSize = (int) ( 30f * Screen.height / 1080 );
 		label.fontStyle = FontStyle.Bold;
 
-		if ( originVisible )
+		if ( globalVisible )
 		{
-			Vector2 screenPos = cam.WorldToScreenPoint ( originAxisTips[0].position );
+			Vector2 screenPos = cam.WorldToScreenPoint ( globalAxisTips[0].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
 			Vector2 size = new Vector2 ( 25, 25 );
 
 			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "N" );
 			GUI.color = Color.red;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "N" );
 
-			screenPos = cam.WorldToScreenPoint ( originAxisTips[1].position );
+			screenPos = cam.WorldToScreenPoint ( globalAxisTips[1].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
 			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "E" );
 			GUI.color = Color.green;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "E" );
 
-			screenPos = cam.WorldToScreenPoint ( originAxisTips[2].position );
+			screenPos = cam.WorldToScreenPoint ( globalAxisTips[2].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
 			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Z" );
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "D" );
 			GUI.color = Color.blue;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Z" );
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "D" );
 		}
 
-		if ( localAxesVisible )
+		if ( bodyAxesVisible )
 		{
 			Vector2 screenPos = cam.WorldToScreenPoint ( localAxisTips[0].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
 			Vector2 size = new Vector2 ( 25, 25 );
 			
 			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
 			GUI.color = Color.red;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
 			
 			screenPos = cam.WorldToScreenPoint ( localAxisTips[1].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
 			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
 			GUI.color = Color.green;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
 			
 			screenPos = cam.WorldToScreenPoint ( localAxisTips[2].position );
 			screenPos.y = Screen.height - screenPos.y - 10;
@@ -220,9 +220,9 @@ public class GimbalControl : MonoBehaviour
 	public void OnResetButton ()
 	{
 		SetAxisOrder ( axisOrder );
-		ringToggles [ 4 ].isOn = true;
-		originToggle.isOn = true;
-		localAxesToggle.isOn = true;
+		ringToggles [ 3 ].isOn = true;
+		globalToggle.isOn = false;
+		bodyAxesToggle.isOn = true;
 	}
 
 	public void OnMouseEnterSlider (int slider)
@@ -231,33 +231,33 @@ public class GimbalControl : MonoBehaviour
 		if ( dropdown.IsExpanded )
 			return;
 		sliderMouse [ slider ] = true;
-		if ( sliderDown == -1 )
-		{
-			Transform ring = RingFromSlider ( slider );
-//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
-			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
-		}
+		// enable this for the yellow highlight
+//		if ( sliderDown == -1 )
+//		{
+//			Transform ring = RingFromSlider ( slider );
+//			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
+//		}
 	}
 
 	public void OnMouseExitSlider (int slider)
 	{
 //		Debug.Log ( "1" );
 		sliderMouse [ slider ] = false;
-		if ( sliderDown != slider )
-		{
-			Transform ring = RingFromSlider ( slider );
-//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
-			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
-		}
+		// enable this for the yellow highlight
+//		if ( sliderDown != slider )
+//		{
+//			Transform ring = RingFromSlider ( slider );
+//			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
+//		}
 	}
 
 	public void OnMouseDownSlider (int slider)
 	{
 //		Debug.Log ( "2" );
 		sliderDown = slider;
-		Transform ring = RingFromSlider ( slider );
-//		Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
-		ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
+		// enable this for the yellow highlight
+//		Transform ring = RingFromSlider ( slider );
+//		ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
 	}
 
 	public void OnMouseUpSlider (int slider)
@@ -268,7 +268,6 @@ public class GimbalControl : MonoBehaviour
 		if ( !sliderMouse [ slider ] )
 		{
 			Transform ring = RingFromSlider ( slider );
-//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
 			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
 		}
 	}
@@ -289,24 +288,21 @@ public class GimbalControl : MonoBehaviour
 			break;
 		case 3:
 			ringToggles [ 0 ].isOn = ringToggles [ 1 ].isOn = ringToggles [ 2 ].isOn = t.isOn;
-//			rollRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
-//			pitchRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
-//			yawRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
 			break;
 		}
 	}
 
-	public void OnOriginToggle (bool b)
+	public void OnGlobalToggle (bool b)
 	{
-		originVisible = b;
-		foreach ( GameObject axis in originAxes )
+		globalVisible = b;
+		foreach ( GameObject axis in globalAxes )
 			axis.SetActive ( b );
 	}
 
-	public void OnLocalAxesToggle (bool b)
+	public void OnBodyToggle (bool b)
 	{
-		localAxesVisible = b;
-		foreach ( GameObject axis in localAxes )
+		bodyAxesVisible = b;
+		foreach ( GameObject axis in bodyAxes )
 			axis.SetActive ( b );
 	}
 }
