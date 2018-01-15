@@ -28,7 +28,14 @@ public class GimbalControl : MonoBehaviour
 	public Transform[] rings;
 	public Transform jet;
 	public Slider[] sliders;
+	public Toggle[] ringToggles;
 	public dd dropdown;
+	public GameObject[] originAxes;
+	public Transform[] originAxisTips;
+	public GameObject[] localAxes;
+	public Transform[] localAxisTips;
+	public Toggle originToggle;
+	public Toggle localAxesToggle;
 
 	public AxisOrder axisOrder;
 	AxisOrder lastAxisOrder;
@@ -39,10 +46,12 @@ public class GimbalControl : MonoBehaviour
 	Transform pitchRing;
 	Transform rollRing;
 	Transform yawRing;
+	Camera cam;
 
 	bool[] sliderMouse = new bool[3];
 	int sliderDown = -1;
-//	bool[] sliderDown = new bool[3];
+	bool originVisible;
+	bool localAxesVisible;
 
 
 	void Awake ()
@@ -51,6 +60,9 @@ public class GimbalControl : MonoBehaviour
 		if ( UnityEditor.EditorApplication.isPlaying )
 		#endif
 		SetAxisOrder ( AxisOrder.RPY );
+		cam = Camera.main;
+		OnOriginToggle ( originToggle.isOn );
+		OnLocalAxesToggle ( localAxesToggle.isOn );
 	}
 
 	void Update ()
@@ -77,6 +89,71 @@ public class GimbalControl : MonoBehaviour
 		#endif
 	}
 
+	void OnGUI ()
+	{
+//		if ( !originVisible && !localAxesVisible )
+//			return;
+		
+		GUIStyle label = GUI.skin.label;
+		int fontSize = label.fontSize;
+		FontStyle fontStyle = label.fontStyle;
+		
+		label.fontSize = (int) ( 30f * Screen.height / 1080 );
+		label.fontStyle = FontStyle.Bold;
+
+		if ( originVisible )
+		{
+			Vector2 screenPos = cam.WorldToScreenPoint ( originAxisTips[0].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			Vector2 size = new Vector2 ( 25, 25 );
+
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
+			GUI.color = Color.red;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
+
+			screenPos = cam.WorldToScreenPoint ( originAxisTips[1].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
+			GUI.color = Color.green;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
+
+			screenPos = cam.WorldToScreenPoint ( originAxisTips[2].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Z" );
+			GUI.color = Color.blue;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Z" );
+		}
+
+		if ( localAxesVisible )
+		{
+			Vector2 screenPos = cam.WorldToScreenPoint ( localAxisTips[0].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			Vector2 size = new Vector2 ( 25, 25 );
+			
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
+			GUI.color = Color.red;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
+			
+			screenPos = cam.WorldToScreenPoint ( localAxisTips[1].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
+			GUI.color = Color.green;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
+			
+			screenPos = cam.WorldToScreenPoint ( localAxisTips[2].position );
+			screenPos.y = Screen.height - screenPos.y - 10;
+			GUI.color = Color.black;
+			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Z" );
+			GUI.color = Color.blue;
+			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Z" );
+		}
+	}
+
 	void ResetRotations ()
 	{
 		AxisSet thisSet = axisSets [ (int) axisOrder ];
@@ -101,6 +178,11 @@ public class GimbalControl : MonoBehaviour
 		ring.Rotate ( axes.axes [ slider ] * sliders [ slider ].value * 360f );
 	}
 
+	Transform RingFromSlider (int slider)
+	{
+		return axisSets [ (int) axisOrder ].rings [ slider ];
+	}
+
 	public void SetAxisOrder (int order)
 	{
 		SetAxisOrder ( (AxisOrder) order );
@@ -115,46 +197,6 @@ public class GimbalControl : MonoBehaviour
 		rollRing = axes.rings [ 0 ];
 		pitchRing = axes.rings [ 1 ];
 		yawRing = axes.rings [ 2 ];
-
-/*		switch ( order )
-		{
-		case AxisOrder.RPY:
-			yawRing = rings [ 0 ];
-			pitchRing = rings [ 1 ];
-			rollRing = rings [ 2 ];
-
-			break;
-
-		case AxisOrder.RYP:
-			pitchRing = rings [ 0 ];
-			yawRing = rings [ 1 ];
-			rollRing = rings [ 2 ];
-			break;
-
-		case AxisOrder.PRY:
-			yawRing = rings [ 0 ];
-			rollRing = rings [ 1 ];
-			pitchRing = rings [ 2 ];
-			break;
-
-		case AxisOrder.PYR:
-			rollRing = rings [ 0 ];
-			yawRing = rings [ 1 ];
-			pitchRing = rings [ 2 ];
-			break;
-
-		case AxisOrder.YRP:
-			pitchRing = rings [ 0 ];
-			rollRing = rings [ 1 ];
-			yawRing = rings [ 2 ];
-			break;
-
-		case AxisOrder.YPR:
-			rollRing = rings [ 0 ];
-			pitchRing = rings [ 1 ];
-			yawRing = rings [ 2 ];
-			break;
-		}*/
 
 		rollRing.GetComponent<ColorSetter> ().SetMaterial ( materials [ 0 ] );
 		pitchRing.GetComponent<ColorSetter> ().SetMaterial ( materials [ 1 ] );
@@ -178,6 +220,9 @@ public class GimbalControl : MonoBehaviour
 	public void OnResetButton ()
 	{
 		SetAxisOrder ( axisOrder );
+		ringToggles [ 4 ].isOn = true;
+		originToggle.isOn = true;
+		localAxesToggle.isOn = true;
 	}
 
 	public void OnMouseEnterSlider (int slider)
@@ -188,7 +233,8 @@ public class GimbalControl : MonoBehaviour
 		sliderMouse [ slider ] = true;
 		if ( sliderDown == -1 )
 		{
-			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			Transform ring = RingFromSlider ( slider );
+//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
 			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
 		}
 	}
@@ -199,7 +245,8 @@ public class GimbalControl : MonoBehaviour
 		sliderMouse [ slider ] = false;
 		if ( sliderDown != slider )
 		{
-			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			Transform ring = RingFromSlider ( slider );
+//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
 			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
 		}
 	}
@@ -208,7 +255,8 @@ public class GimbalControl : MonoBehaviour
 	{
 //		Debug.Log ( "2" );
 		sliderDown = slider;
-		Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+		Transform ring = RingFromSlider ( slider );
+//		Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
 		ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ 3 ] );
 	}
 
@@ -219,8 +267,46 @@ public class GimbalControl : MonoBehaviour
 		if ( sliderDown != slider )
 		if ( !sliderMouse [ slider ] )
 		{
-			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
+			Transform ring = RingFromSlider ( slider );
+//			Transform ring = axisSets [ (int) axisOrder ].rings [ slider ];
 			ring.GetComponent<ColorSetter> ().SetMaterial ( materials [ slider ] );
 		}
+	}
+
+	public void OnRingToggleChanged (Toggle t)
+	{
+		int index = ringToggles.IndexOf ( t );
+		switch (index)
+		{
+		case 0:
+			rollRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			break;
+		case 1:
+			pitchRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			break;
+		case 2:
+			yawRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			break;
+		case 3:
+			ringToggles [ 0 ].isOn = ringToggles [ 1 ].isOn = ringToggles [ 2 ].isOn = t.isOn;
+//			rollRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+//			pitchRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+//			yawRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			break;
+		}
+	}
+
+	public void OnOriginToggle (bool b)
+	{
+		originVisible = b;
+		foreach ( GameObject axis in originAxes )
+			axis.SetActive ( b );
+	}
+
+	public void OnLocalAxesToggle (bool b)
+	{
+		localAxesVisible = b;
+		foreach ( GameObject axis in localAxes )
+			axis.SetActive ( b );
 	}
 }

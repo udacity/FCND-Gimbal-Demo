@@ -24,4 +24,10 @@ public class ColorSetter : MonoBehaviour
 		foreach ( Renderer r in renderers )
 			r.material = m;
 	}
+
+	public void SetVisible (bool b)
+	{
+		foreach ( Renderer r in renderers )
+			r.enabled = b;
+	}
 }
