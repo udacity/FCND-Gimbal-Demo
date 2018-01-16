@@ -33,9 +33,11 @@ public class GimbalControl : MonoBehaviour
 	public GameObject[] globalAxes;
 	public Transform[] globalAxisTips;
 	public GameObject[] bodyAxes;
-	public Transform[] localAxisTips;
+	public Transform[] bodyAxisTips;
 	public Toggle globalToggle;
+	public Toggle[] globalToggles;
 	public Toggle bodyAxesToggle;
+	public Toggle[] bodyFrameToggles;
 
 	public AxisOrder axisOrder;
 	AxisOrder lastAxisOrder;
@@ -43,15 +45,20 @@ public class GimbalControl : MonoBehaviour
 	// make this public to re-capture rotations
 	public bool captureRotations;
 
+	public Vector3 globalFrameScreenPos;
+
 	Transform pitchRing;
 	Transform rollRing;
 	Transform yawRing;
 	Camera cam;
+	Transform globalFrameParent;
 
 	bool[] sliderMouse = new bool[3];
 	int sliderDown = -1;
 	bool globalVisible;
+	bool[] globalVisibles = new bool[3];
 	bool bodyAxesVisible;
+	bool[] bodyAxesVisibles = new bool[3];
 
 
 	void Awake ()
@@ -61,6 +68,15 @@ public class GimbalControl : MonoBehaviour
 		#endif
 		SetAxisOrder ( AxisOrder.RPY );
 		cam = Camera.main;
+		if ( bodyAxes != null && bodyAxes.Length > 0 )
+			globalFrameParent = globalAxes [ 0 ].transform.parent;
+		if ( globalFrameParent != null )
+			globalFrameParent.position = cam.ViewportToWorldPoint ( globalFrameScreenPos );
+		for ( int i = 0; i < 3; i++ )
+		{
+			globalVisibles [ i ] = globalToggles [ i ];
+			bodyAxesVisibles [ i ] = bodyFrameToggles [ i ];
+		}
 		OnGlobalToggle ( globalToggle.isOn );
 		OnBodyToggle ( bodyAxesToggle.isOn );
 	}
@@ -89,10 +105,16 @@ public class GimbalControl : MonoBehaviour
 		#endif
 	}
 
+	void LateUpdate ()
+	{
+		if ( globalFrameParent != null )
+			globalFrameParent.position = cam.ViewportToWorldPoint ( globalFrameScreenPos );
+	}
+
 	void OnGUI ()
 	{
-//		if ( !globalVisible && !bodyAxesVisible )
-//			return;
+		if ( !globalVisible && !bodyAxesVisible )
+			return;
 		
 		GUIStyle label = GUI.skin.label;
 		int fontSize = label.fontSize;
@@ -100,57 +122,73 @@ public class GimbalControl : MonoBehaviour
 		
 		label.fontSize = (int) ( 30f * Screen.height / 1080 );
 		label.fontStyle = FontStyle.Bold;
+		Vector2 screenPos;
+		Vector2 size = new Vector2 ( 25, 25 );
 
 		if ( globalVisible )
 		{
-			Vector2 screenPos = cam.WorldToScreenPoint ( globalAxisTips[0].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			Vector2 size = new Vector2 ( 25, 25 );
+			if ( globalVisibles [ 0 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( globalAxisTips [ 0 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "N" );
+				GUI.color = Color.green;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "N" );
+			}
 
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "N" );
-			GUI.color = Color.red;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "N" );
+			if ( globalVisibles [ 1 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( globalAxisTips [ 1 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "E" );
+				GUI.color = Color.red;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "E" );
+			}
 
-			screenPos = cam.WorldToScreenPoint ( globalAxisTips[1].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "E" );
-			GUI.color = Color.green;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "E" );
-
-			screenPos = cam.WorldToScreenPoint ( globalAxisTips[2].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "D" );
-			GUI.color = Color.blue;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "D" );
+			if ( globalVisibles [ 2 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( globalAxisTips [ 2 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "D" );
+				GUI.color = Color.blue;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "D" );
+			}
 		}
 
 		if ( bodyAxesVisible )
 		{
-			Vector2 screenPos = cam.WorldToScreenPoint ( localAxisTips[0].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			Vector2 size = new Vector2 ( 25, 25 );
-			
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
-			GUI.color = Color.red;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
-			
-			screenPos = cam.WorldToScreenPoint ( localAxisTips[1].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
-			GUI.color = Color.green;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
-			
-			screenPos = cam.WorldToScreenPoint ( localAxisTips[2].position );
-			screenPos.y = Screen.height - screenPos.y - 10;
-			GUI.color = Color.black;
-			GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Z" );
-			GUI.color = Color.blue;
-			GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Z" );
+			if ( bodyAxesVisibles [ 0 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( bodyAxisTips [ 0 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "X" );
+				GUI.color = Color.green;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "X" );
+			}
+
+			if ( bodyAxesVisibles [ 1 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( bodyAxisTips [ 1 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Y" );
+				GUI.color = Color.red;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Y" );
+			}
+
+			if ( bodyAxesVisibles [ 2 ] )
+			{
+				screenPos = cam.WorldToScreenPoint ( bodyAxisTips [ 2 ].position );
+				screenPos.y = Screen.height - screenPos.y - 10;
+				GUI.color = Color.black;
+				GUI.Label ( new Rect ( screenPos - size + Vector2.one, size * 2 ), "Z" );
+				GUI.color = Color.blue;
+				GUI.Label ( new Rect ( screenPos - size, size * 2 ), "Z" );
+			}
 		}
 	}
 
@@ -221,7 +259,7 @@ public class GimbalControl : MonoBehaviour
 	{
 		SetAxisOrder ( axisOrder );
 		ringToggles [ 3 ].isOn = true;
-		globalToggle.isOn = false;
+		globalToggle.isOn = true;
 		bodyAxesToggle.isOn = true;
 	}
 
@@ -274,20 +312,21 @@ public class GimbalControl : MonoBehaviour
 
 	public void OnRingToggleChanged (Toggle t)
 	{
+		bool gimbalOn = ringToggles [ 3 ].isOn;
 		int index = ringToggles.IndexOf ( t );
 		switch (index)
 		{
 		case 0:
-			rollRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			rollRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn && gimbalOn );
 			break;
 		case 1:
-			pitchRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			pitchRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn && gimbalOn );
 			break;
 		case 2:
-			yawRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn );
+			yawRing.GetComponent<ColorSetter> ().SetVisible ( t.isOn && gimbalOn );
 			break;
 		case 3:
-			ringToggles [ 0 ].isOn = ringToggles [ 1 ].isOn = ringToggles [ 2 ].isOn = t.isOn;
+//			ringToggles [ 0 ].isOn = ringToggles [ 1 ].isOn = ringToggles [ 2 ].isOn = t.isOn;
 			break;
 		}
 	}
@@ -295,14 +334,34 @@ public class GimbalControl : MonoBehaviour
 	public void OnGlobalToggle (bool b)
 	{
 		globalVisible = b;
+		int i = 0;
 		foreach ( GameObject axis in globalAxes )
-			axis.SetActive ( b );
+		{
+			axis.SetActive ( b && globalVisibles [ i ] );
+			i++;
+		}
+	}
+
+	public void OnGlobalToggles (int toggle)
+	{
+		globalVisibles [ toggle ] = globalToggles [ toggle ].isOn;
+		globalAxes [ toggle ].SetActive ( globalVisible && globalVisibles [ toggle ] );
 	}
 
 	public void OnBodyToggle (bool b)
 	{
 		bodyAxesVisible = b;
+		int i = 0;
 		foreach ( GameObject axis in bodyAxes )
-			axis.SetActive ( b );
+		{
+			axis.SetActive ( b && bodyAxesVisibles [ i ] );
+			i++;
+		}
+	}
+
+	public void OnBodyToggles (int toggle)
+	{
+		bodyAxesVisibles [ toggle ] = bodyFrameToggles [ toggle ].isOn;
+		bodyAxes [ toggle ].SetActive ( bodyAxesVisible && bodyAxesVisibles [ toggle ] );
 	}
 }

@@ -25,7 +25,7 @@ public class OrbitCam : MonoBehaviour
 		camInitialPosition = camTransform.localPosition;
 	}
 
-	void LateUpdate ()
+	void Update ()
 	{
 		Vector2 mouse = new Vector2 ( Input.GetAxis ( "Mouse X" ), Input.GetAxis ( "Mouse Y" ) );
 		Vector2 mousePos = Input.mousePosition;
